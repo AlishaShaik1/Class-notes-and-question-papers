@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -72,47 +71,3 @@ export default defineConfig([
   },
 ])
 ```
-=======
-# PDF Resource Hub
-
-A community-driven resource website for sharing and downloading PDF notes.
-
-## Technology Stack
-
-- **Frontend**: React with TypeScript, Tailwind CSS, Framer Motion
-- **Backend**: Node.js with Express.js
-- **Database**: MongoDB
-- **File Storage**: Cloud Storage (e.g., Amazon S3 or Google Cloud Storage)
-
-## Project Structure
-
-```
-pdf-resource-hub/
-├── frontend/          # React frontend
-├── backend/           # Node.js backend
-├── README.md
-└── .gitignore
-```
-
-## Getting Started
-
-### Frontend
-
-1. Navigate to the frontend directory: `cd frontend`
-2. Install dependencies: `npm install`
-3. Start the development server: `npm start`
-
-### Backend
-
-1. Navigate to the backend directory: `cd backend`
-2. Install dependencies: `npm install`
-3. Set up environment variables in `.env`
-4. Start the server: `npm start`
-
-## Features
-
-- Upload and download PDF notes
-- Search and filter notes by subject, year, or uploader
-- User authentication for uploaders
-- Responsive design with animations
->>>>>>> 9a756fc (Final project structure with separate frontend and backend folders)
