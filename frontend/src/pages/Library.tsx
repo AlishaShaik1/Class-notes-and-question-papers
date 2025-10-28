@@ -25,10 +25,8 @@ const Library: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // State to manage the currently open "folder" (subject)
     const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
-    // Hardcoded subject list for navigation
     const SUBJECTS = ['M3', 'ADSA', 'AI', 'Java', 'Python', 'UHV', 'ES'];
 
     useEffect(() => {
@@ -45,26 +43,22 @@ const Library: React.FC = () => {
         fetchNotes();
     }, []);
 
-    // Memoized filtered notes (Filters by Subject, Type, and Search Term)
     const filteredNotes = useMemo(() => {
         let notesToFilter = allNotes;
         
-        // 1. Filter by Section Type (Notes or Papers) - Always applies
         notesToFilter = notesToFilter.filter(note => note.fileType === filterType);
         
-        // 2. Filter by Selected Subject (Only if a subject is selected AND we are viewing Notes)
         if (selectedSubject && filterType === 'Notes') {
             notesToFilter = notesToFilter.filter(note => note.subject === selectedSubject);
         }
         
-        // 3. Apply text search
         const lowerCaseSearch = searchTerm.toLowerCase();
         
         return notesToFilter.filter(note => 
             note.title.toLowerCase().includes(lowerCaseSearch) ||
             note.subject.toLowerCase().includes(lowerCaseSearch) ||
             note.uploaderName.toLowerCase().includes(lowerCaseSearch)
-        ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Sort by newest
+        ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         
     }, [allNotes, searchTerm, filterType, selectedSubject]);
 
@@ -73,7 +67,6 @@ const Library: React.FC = () => {
         return <div className="text-center text-2xl text-pec-blue mt-20">Loading amazing content...</div>;
     }
 
-    // --- Helper function to display the main content ---
     const renderContent = () => {
         if (error) {
             return <div className="text-center text-xl text-red-600 mb-8">{error}</div>;
@@ -95,7 +88,6 @@ const Library: React.FC = () => {
             );
         }
 
-        // Display note cards
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredNotes.map((note) => (
@@ -157,9 +149,10 @@ const Library: React.FC = () => {
                 />
             </motion.div>
             
+            
             {/* --- DYNAMIC VIEW SWITCHING --- */}
             
-            {/* A. NOTES - Subject Folder View */}
+            {/* A. NOTES - Subject Folder View (Now using the book icon) */}
             {filterType === 'Notes' && !selectedSubject && (
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
@@ -175,7 +168,8 @@ const Library: React.FC = () => {
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <span className="text-5xl mb-2">📁</span>
+                            {/* REPLACED FOLDER ICON WITH MODERN BOOK ICON */}
+                            <span className="text-5xl mb-2 text-pec-blue">📚</span>
                             <span className="text-lg font-bold text-gray-800">{subject}</span>
                             <span className="text-sm text-gray-500">View Notes</span>
                         </motion.button>

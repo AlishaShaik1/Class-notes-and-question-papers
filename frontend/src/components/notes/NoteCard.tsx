@@ -1,14 +1,15 @@
 // frontend/src/components/notes/NoteCard.tsx
 import React from "react";
 import { motion } from "framer-motion";
-import { Download } from "lucide-react";
+// Ensure you have lucide-react installed for the icon: npm install lucide-react
+import { Download } from "lucide-react"; 
 
 interface Note {
   _id: string;
   title: string;
   subject: string;
   courseYear: number;
-  fileUrl: string;
+  fileUrl: string; // Permanent Cloudinary URL from MongoDB
   uploaderName: string;
   createdAt: string;
 }
@@ -18,6 +19,7 @@ interface NoteCardProps {
 }
 
 const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
+  
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -25,12 +27,27 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
       day: "numeric",
     });
 
+  /**
+   * FINAL, MOBILE-FOCUSED DOWNLOAD FIX: 
+   * Uses the temporary anchor (<a>) tag with the 'download' attribute to 
+   * explicitly instruct the browser/OS to save the file, overriding the PDF viewer.
+   */
   const handleDownload = () => {
+    // 1. Construct the desired filename
     const filename = `${note.title.replace(/\s/g, "_")}-${note._id}.pdf`;
+    
+    // 2. Prepare the final URL with the direct download flag (best for Cloudinary)
+    // We add ?dl=1 to the URL.
+    const finalUrl = `${note.fileUrl}?dl=1`; 
+    
+    // 3. Create a temporary anchor element (a)
     const downloadLink = document.createElement("a");
-    downloadLink.href = note.fileUrl;
-    downloadLink.target = "_self";
-    downloadLink.download = filename;
+    
+    downloadLink.href = finalUrl;
+    downloadLink.target = "_self"; // Opens in the same tab (better for mobile download prompt)
+    downloadLink.download = filename; // This attribute forces the "Save As" dialog
+    
+    // 4. Trigger the download and clean up
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -68,7 +85,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
             </span>
           </div>
 
-          {/* Uploader info */}
+          {/* Uploader info (Last Uploaded By feature) */}
           <div className="text-gray-700 text-sm border-t border-gray-300/40 pt-3 space-y-1">
             <p>
               <span className="font-semibold text-gray-900">Uploaded By:</span>{" "}
@@ -90,8 +107,8 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
           }}
           whileTap={{ scale: 0.95 }}
           className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r 
-                     from-green-500 to-blue-500 text-white font-bold rounded-xl 
-                     shadow-md hover:from-green-600 hover:to-blue-600 transition-all duration-300"
+                    from-green-500 to-blue-500 text-white font-bold rounded-xl 
+                    shadow-md hover:from-green-600 hover:to-blue-600 transition-all duration-300"
         >
           <Download className="w-5 h-5" /> Download PDF
         </motion.button>

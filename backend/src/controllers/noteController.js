@@ -23,24 +23,25 @@ export const uploadNote = async (req, res) => {
         return res.status(500).json({ message: 'File upload failed or file object is missing.' });
     }
 
-    // 3. Extract the metadata, NOW INCLUDING 'chapter'
+    // 3. Extract all required metadata fields
     const { 
         title, 
         subject, 
         courseYear, 
         uploaderName, 
         fileType,
-        chapter // <--- EXTRACTING THE NEW CHAPTER FIELD
+        chapter
     } = req.body; 
     
-    // CRITICAL FIX: Convert chapter and courseYear from String (form data) to Number
+    // CRITICAL: Convert chapter and courseYear from String (form data) to Number
     const chapterNum = parseInt(chapter);
     const yearNum = parseInt(courseYear);
 
-    // Get the public URL from the Cloudinary upload result
+    // Get the public URL from the Cloudinary upload result. 
+    // THIS URL IS GUARANTEED TO BE URL-SAFE by Cloudinary's middleware.
     const fileUrl = req.file.path; 
 
-    // Safety check for required metadata (now includes checking for valid numbers)
+    // Safety check for required metadata (includes checking for valid numbers)
     if (!title || !subject || isNaN(yearNum) || !fileType || isNaN(chapterNum) || !uploaderName) { 
         console.log('Validation Failed: Missing required data or Chapter/Year is not a valid number.');
         return res.status(400).json({ message: 'Missing required data or Chapter/Year is invalid.' });
@@ -50,10 +51,10 @@ export const uploadNote = async (req, res) => {
         const note = new Note({
             title,
             subject,
-            courseYear: yearNum, // <--- SAVING THE CONVERTED NUMBER
+            courseYear: yearNum,
             fileUrl, 
             fileType, 
-            chapter: chapterNum, // <--- SAVING THE CONVERTED NUMBER
+            chapter: chapterNum, 
             uploaderName: uploaderName || 'Anonymous', 
         });
 
