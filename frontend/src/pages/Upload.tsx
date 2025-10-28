@@ -59,8 +59,8 @@ const Upload: React.FC = () => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          // FIX: Changed text color to deep gray-900 (matches background contrast)
-          className="text-center text-5xl font-extrabold text-gray-900 mb-8 drop-shadow-lg uppercase"
+          // FIX: Changed text color to a vibrant, deep blue (text-blue-800) for contrast
+          className="text-center text-5xl font-extrabold text-blue-800 mb-8 drop-shadow-md uppercase"
         >
           <span className="flex items-center justify-center space-x-3">
               <img 
@@ -92,7 +92,7 @@ const Upload: React.FC = () => {
         </motion.div>
       </motion.div>
 
-      {/* Glow ring accent at bottom (REMOVED ROTATING ANIMATION) */}
+      {/* Glow ring accent at bottom */}
       <motion.div
         className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-80 h-80 bg-gradient-to-r from-indigo-400 via-blue-500 to-teal-400 rounded-full blur-[120px] opacity-40"
         animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.6, 0.4] }}

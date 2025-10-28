@@ -14,11 +14,11 @@ const noteSchema = mongoose.Schema(
             required: true,
             trim: true,
         },
-        // ADDED FIELD: For displaying and filtering by chapter number
+        // FIX: Removed 'min: 1' constraint to allow the value 0 for Exam Papers.
         chapter: { 
             type: Number,
             required: true,
-            min: 1, 
+            // REMOVED: min: 1, 
             max: 10, // Example validation limit
         },
         courseYear: {
