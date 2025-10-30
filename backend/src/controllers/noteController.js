@@ -30,33 +30,38 @@ export const uploadNote = async (req, res) => {
         courseYear, 
         uploaderName, 
         fileType,
-        chapter // <-- Successfully extracted from req.body
+        chapter // Chapter value is sent from frontend (number or '0')
     } = req.body; 
     
-    // CRITICAL FIX: Convert chapter and courseYear from String to Number
-    // Use parseInt() with radix 10 for safe conversion
-    const chapterNum = parseInt(chapter, 10);
+    // CRITICAL: Determine final numeric values for database
+    const isNotes = fileType === 'Notes';
+
+    // If it's a Note, convert the chapter number. If it's Papers/Assignments, it should be 0.
+    const chapterNum = isNotes ? parseInt(chapter, 10) : 0; 
     const yearNum = parseInt(courseYear, 10);
+
+    // Final Subject for saving: Placeholder logic ensures 'N/A' is saved only if needed
+    const finalSubject = subject || 'N/A'; // Use subject if provided, otherwise N/A (for Papers)
 
     // Get the public URL from the Cloudinary upload result. 
     const fileUrl = req.file.path; 
 
     // Safety check for required metadata (now checking for valid numbers/existence)
-    if (!title || !subject || isNaN(yearNum) || !fileType || isNaN(chapterNum) || !uploaderName) { 
+    // NOTE: Subject is validated as long as it's not empty, which the frontend handles.
+    if (!title || !subject || isNaN(yearNum) || !fileType || !uploaderName || (isNotes && isNaN(chapterNum))) { 
         console.log('Validation Failed: Missing required data or Chapter/Year is not a valid number.');
-        // Log the invalid data for easier debugging if it fails
-        console.log(`Debug Data Check: Chapter=${chapter}, Year=${courseYear}`);
+        console.log(`Debug Data Check: Chapter=${chapterNum}, Year=${yearNum}`);
         return res.status(400).json({ message: 'Missing required data or Chapter/Year is invalid.' });
     }
 
     try {
         const note = new Note({
             title,
-            subject,
-            courseYear: yearNum, // <-- SAVING CONVERTED NUMBER
+            subject: finalSubject,
+            courseYear: yearNum, 
             fileUrl, 
             fileType, 
-            chapter: chapterNum, // <-- SAVING CONVERTED NUMBER
+            chapter: chapterNum, // SAVING 0 for Assignments/Papers, or 1-5 for Notes
             uploaderName: uploaderName || 'Anonymous', 
         });
 

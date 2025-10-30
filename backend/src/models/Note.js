@@ -14,12 +14,11 @@ const noteSchema = mongoose.Schema(
             required: true,
             trim: true,
         },
-        // FIX: Removed 'min: 1' constraint to allow the value 0 for Exam Papers.
+        // FIX 1: Remove 'min: 1' to allow the value 0 for non-chaptered content (Papers/Assignments).
         chapter: { 
             type: Number,
             required: true,
-            // REMOVED: min: 1, 
-            max: 10, // Example validation limit
+            max: 10, // Max validation limit remains
         },
         courseYear: {
             type: Number,
@@ -30,10 +29,11 @@ const noteSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        // FIX 2: Add 'Assignments' to the allowed list (enum)
         fileType: {
             type: String,
             required: true,
-            enum: ['Notes', 'Papers'], 
+            enum: ['Notes', 'Papers', 'Assignments'], 
         },
         uploaderName: {
             // The name entered by the user

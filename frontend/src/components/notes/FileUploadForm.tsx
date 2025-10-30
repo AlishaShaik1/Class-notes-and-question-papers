@@ -1,48 +1,44 @@
 // frontend/src/components/notes/FileUploadForm.tsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { AnimatePresence } from 'framer-motion';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_URL = `${API_BASE_URL}/api/notes`;
 
 const FileUploadForm: React.FC = () => {
-    // --- State Variables ---
     const [file, setFile] = useState<File | null>(null);
     const [title, setTitle] = useState('');
     const [subject, setSubject] = useState('');
-    const [chapter, setChapter] = useState(''); 
+    const [chapter, setChapter] = useState('');
     const [courseYear, setCourseYear] = useState('');
     const [uploaderName, setUploaderName] = useState('');
     const [fileType, setFileType] = useState('');
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | '' }>({ text: '', type: '' });
     const [loading, setLoading] = useState(false);
 
-    // Hardcoded lists for selection fields
     const SUBJECTS = ['M3', 'ADSA', 'AI', 'Java', 'Python', 'UHV', 'ES'];
-    const CHAPTERS = [1, 2, 3, 4, 5]; 
-    
-    // Helper variable to control conditional rendering and validation
-    const requiresSubjectAndChapter = fileType === 'Notes';
+    const CHAPTERS = [1, 2, 3, 4, 5];
 
-    // --- Submission Logic ---
+    const requiresSubject = fileType === 'Notes' || fileType === 'Assignments';
+    const requiresChapter = fileType === 'Notes';
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage({ text: '', type: '' });
 
-        // DYNAMIC VALIDATION: Check subject/chapter only if 'Notes' is selected
-        if (requiresSubjectAndChapter && (!subject || !chapter)) {
+        if (requiresChapter && (!subject || !chapter)) {
             setMessage({ text: 'Please select both Subject and Chapter for Class Notes.', type: 'error' });
             return;
         }
-        
-        // General mandatory fields check
+        if (fileType === 'Assignments' && !subject) {
+            setMessage({ text: 'Assignments require a Subject selection.', type: 'error' });
+            return;
+        }
         if (!file || !title || !courseYear || !uploaderName || !fileType) {
             setMessage({ text: 'Please fill out all required fields and select a file.', type: 'error' });
             return;
         }
-
         if (file.type !== 'application/pdf') {
             setMessage({ text: 'Only PDF files are allowed.', type: 'error' });
             return;
@@ -53,27 +49,33 @@ const FileUploadForm: React.FC = () => {
         formData.append('title', title);
         formData.append('courseYear', courseYear);
         formData.append('uploaderName', uploaderName);
-        formData.append('fileType', fileType); 
+        formData.append('fileType', fileType);
 
-        // CRITICAL DATA APPENDING: Send data dynamically or as placeholder
-        if (requiresSubjectAndChapter) {
+        if (requiresSubject) {
             formData.append('subject', subject);
-            formData.append('chapter', chapter); // Sends numeric string (e.g., '1', '2')
         } else {
-            // Send placeholders for Exam Papers to prevent backend validation failure
-            formData.append('subject', 'N/A'); 
-            formData.append('chapter', '0'); 
+            formData.append('subject', 'N/A');
+        }
+
+        if (requiresChapter) {
+            formData.append('chapter', chapter);
+        } else {
+            formData.append('chapter', '0');
         }
 
         setLoading(true);
-
         try {
-            await axios.post(API_URL, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            await axios.post(API_URL, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setMessage({ text: 'Upload successful! Your classmates can now download it.', type: 'success' });
-
-            // Reset form fields
-            setFile(null); setTitle(''); setSubject(''); setChapter(''); 
-            setCourseYear(''); setUploaderName(''); setFileType('');
+            setFile(null);
+            setTitle('');
+            setSubject('');
+            setChapter('');
+            setCourseYear('');
+            setUploaderName('');
+            setFileType('');
             (document.getElementById('file-input') as HTMLInputElement).value = '';
         } catch (error) {
             console.error(error);
@@ -83,9 +85,10 @@ const FileUploadForm: React.FC = () => {
         }
     };
 
-    // --- Styling and Animation Presets ---
     const alertClasses =
-        message.type === 'success' ? 'bg-pec-green/10 border-pec-green text-pec-green' : 'bg-red-500/10 border-red-500 text-red-700';
+        message.type === 'success'
+            ? 'bg-pec-green/10 border-pec-green text-pec-green'
+            : 'bg-red-500/10 border-red-500 text-red-700';
 
     const fieldVariant = {
         hidden: { opacity: 0, y: 15 },
@@ -96,7 +99,6 @@ const FileUploadForm: React.FC = () => {
         }),
     };
 
-    // --- Component JSX ---
     return (
         <motion.form
             onSubmit={handleSubmit}
@@ -108,16 +110,10 @@ const FileUploadForm: React.FC = () => {
             }}
             className="bg-white p-6 md:p-10 rounded-xl shadow-2xl space-y-6 max-w-lg mx-auto border border-gray-200"
         >
-            {/* Header */}
-            <motion.h3
-                variants={fieldVariant}
-                custom={0}
-                className="text-3xl font-extrabold text-center text-pec-blue"
-            >
+            <motion.h3 variants={fieldVariant} custom={0} className="text-3xl font-extrabold text-center text-pec-blue">
                 📤 SHARE YOUR NOTES
             </motion.h3>
 
-            {/* Message */}
             {message.text && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -129,15 +125,14 @@ const FileUploadForm: React.FC = () => {
                 </motion.div>
             )}
 
-            {/* 1. File Type Selector (Custom Index 1) */}
+            {/* File Type */}
             <motion.div variants={fieldVariant} custom={1}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Content Type:</label>
                 <motion.select
                     value={fileType}
                     onChange={(e) => {
                         setFileType(e.target.value);
-                        // Reset subject/chapter if Papers is selected to prevent bad data
-                        if (e.target.value === 'Papers') {
+                        if (e.target.value !== 'Notes') {
                             setSubject('');
                             setChapter('');
                         }
@@ -148,49 +143,52 @@ const FileUploadForm: React.FC = () => {
                 >
                     <option value="">-- Select Type --</option>
                     <option value="Notes">Class Notes</option>
+                    <option value="Assignments">Assignments</option>
                     <option value="Papers">Previous Exam Papers</option>
                 </motion.select>
             </motion.div>
-            
-            {/* File Input (Custom Index 2) */}
+
+            {/* File Input */}
             <motion.div variants={fieldVariant} custom={2}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select PDF File (Max 10MB)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select PDF File (Max 100MB)</label>
                 <motion.input
                     id="file-input"
                     type="file"
                     accept=".pdf"
                     onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
                     whileHover={{ scale: 1.02 }}
-                    className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pec-blue/10 file:text-pec-blue hover:file:bg-pec-blue/20"
+                    className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-600 
+                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 
+                    file:text-sm file:font-semibold file:bg-pec-blue/10 file:text-pec-blue 
+                    hover:file:bg-pec-blue/20"
                     required
                 />
             </motion.div>
 
-            {/* Title (Custom Index 3) */}
+            {/* Title */}
             <motion.input
                 variants={fieldVariant}
                 custom={3}
                 type="text"
-                placeholder={requiresSubjectAndChapter ? "Title (e.g., Module 3 Handout)" : "Title (e.g., Midterm Exam 2024)"}
+                placeholder={requiresChapter ? 'Title (e.g., Module 3 Handout)' : 'Title (e.g., Midterm Exam 2024)'}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-pec-blue focus:border-pec-blue transition"
                 required
             />
-            
-            {/* --- CONDITIONAL FIELDS (Subject and Chapter) --- */}
+
+            {/* Subject and Chapter */}
             <AnimatePresence initial={false}>
-                {requiresSubjectAndChapter && (
-                    <motion.div 
+                {requiresSubject && (
+                    <motion.div
                         key="conditional-fields"
-                        // FIX: Use delay based on previous elements
-                        initial={{ opacity: 0, height: 0, y: 15 }}
-                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
                         className="space-y-4 overflow-hidden"
                     >
-                        {/* Subject Selector */}
+                        {/* Subject */}
                         <motion.div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Subject:</label>
                             <motion.select
@@ -201,31 +199,40 @@ const FileUploadForm: React.FC = () => {
                                 required
                             >
                                 <option value="">-- Select Subject --</option>
-                                {SUBJECTS.map((sub) => (<option key={sub} value={sub}>{sub}</option>))}
+                                {SUBJECTS.filter(sub => {
+                                    if (fileType === 'Assignments') {
+                                        return sub !== 'Python' && sub !== 'ES';
+                                    }
+                                    return true;
+                                }).map(sub => (
+                                    <option key={sub} value={sub}>{sub}</option>
+                                ))}
                             </motion.select>
                         </motion.div>
-                        
-                        {/* Chapter Selector */}
-                        <motion.div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Chapter:</label>
-                            <motion.select
-                                value={chapter}
-                                onChange={(e) => setChapter(e.target.value)}
-                                whileHover={{ scale: 1.02 }}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-pec-blue focus:border-pec-blue transition"
-                                required
-                            >
-                                {/* FIX: Value must be numeric string for backend conversion to work */}
-                                <option value="">-- Select Chapter --</option>
-                                {CHAPTERS.map((ch) => (<option key={ch} value={String(ch)}>{`Chapter ${ch}`}</option>))}
-                            </motion.select>
-                        </motion.div>
+
+                        {/* Chapter (Notes Only) */}
+                        {requiresChapter && (
+                            <motion.div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Chapter:</label>
+                                <motion.select
+                                    value={chapter}
+                                    onChange={(e) => setChapter(e.target.value)}
+                                    whileHover={{ scale: 1.02 }}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-pec-blue focus:border-pec-blue transition"
+                                    required
+                                >
+                                    <option value="">-- Select Chapter --</option>
+                                    {CHAPTERS.map(ch => (
+                                        <option key={ch} value={String(ch)}>{`Chapter ${ch}`}</option>
+                                    ))}
+                                </motion.select>
+                            </motion.div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-
-            {/* Course Year (Custom Index 6) */}
+            {/* Course Year */}
             <motion.input
                 variants={fieldVariant}
                 custom={6}
@@ -237,7 +244,7 @@ const FileUploadForm: React.FC = () => {
                 required
             />
 
-            {/* Uploader Name (Custom Index 7) */}
+            {/* Uploader Name */}
             <motion.input
                 variants={fieldVariant}
                 custom={7}
@@ -249,7 +256,7 @@ const FileUploadForm: React.FC = () => {
                 required
             />
 
-            {/* Submit Button (Custom Index 8) */}
+            {/* Submit */}
             <motion.button
                 variants={fieldVariant}
                 custom={8}
@@ -261,7 +268,6 @@ const FileUploadForm: React.FC = () => {
                     loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-pec-green hover:bg-pec-blue'
                 }`}
             >
-                {/* Updated Loading State Text and Animation */}
                 {loading ? (
                     <motion.span
                         initial={{ opacity: 0 }}
