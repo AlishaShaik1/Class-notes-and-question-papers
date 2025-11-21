@@ -150,7 +150,7 @@ const FileUploadForm: React.FC = () => {
 
             {/* File Input */}
             <motion.div variants={fieldVariant} custom={2}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select PDF File (Max 100MB)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select PDF File (Max 10MB)</label>
                 <motion.input
                     id="file-input"
                     type="file"
